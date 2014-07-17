@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>EventHubs.IoT.AuthAndSend.WinJsSender</title>
+
+    <!-- WinJS references -->
+    <!-- At runtime, ui-themed.css resolves to ui-themed.light.css or ui-themed.dark.css
+    based on the user’s theme setting. This is part of the MRT resource loading functionality. -->
+    <link href="/css/ui-themed.css" rel="stylesheet" />
+    <script src="//Microsoft.Phone.WinJS.2.1/js/base.js"></script>
+    <script src="//Microsoft.Phone.WinJS.2.1/js/ui.js"></script>
+
+    <!-- EventHubs.IoT.AuthAndSend.WinJsSender references -->
+    <link href="/css/default.css" rel="stylesheet" />
+    <script src="/js/default.js"></script>
+</head>
+<body class="phone">
+<input type="text" value="0" id="temp" />
+<input type="button" value="Send Temperature" onclick="sendTemperature()" />
+<label id="status"></label>
+<script type="text/javascript">
+function sendTemperature() {
+    // Generate a SAS key with the Signature Generator.: https://github.com/sandrinodimattia/RedDog/releases
+    // Could be provided by a Web API.
+    var sas = "SharedAccessSignature sr=https%3a%2f%2freddogeventhub.servicebus.windows.net%2ftemperature%2fpublishers%2fphone%2fmessages&sig=Luqu%2fZQd6rfhCdGPTZlhMYCVtXM51QWsdSVlc08LGWc%3d&se=1405564221&skn=SenderDevice";
+
+    var serviceNamespace = "reddogeventhub";
+    var hubName = "temperature";
+    var deviceName = "phone";
+
+    var xmlHttpRequest = new XMLHttpRequest();
+    xmlHttpRequest.open("POST", "https://" +
+        serviceNamespace + ".servicebus.windows.net/" + hubName + "/publishers/" + deviceName + "/messages", true);
+    xmlHttpRequest.setRequestHeader('Content-Type',
+        "application/atom+xml;type=entry;charset=utf-8");
+    xmlHttpRequest.setRequestHeader("Authorization", sas);
+
+    xmlHttpRequest.onreadystatechange = function () {
+        if (this.readyState == 4) {
+
+            if (this.status == 201) {
+                document.getElementById('status').innerText =
+                    'Sent: ' + document.getElementById('temp').value;
+            } else {
+                document.getElementById('status').innerText =
+                    this.status;
+            }
+        }
+    };
+
+    xmlHttpRequest.send("{ Temperature: " + document.getElementById('temp').value + " }");
+}
+</script>
+</body>
+</html>
